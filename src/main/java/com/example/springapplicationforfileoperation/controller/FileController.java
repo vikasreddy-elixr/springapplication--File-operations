@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotEmpty;
 import java.util.Objects;
+import java.util.UUID;
 
 @Validated
 @RestController
@@ -28,16 +29,17 @@ public class FileController {
     }
 
     @PostMapping(value = "/upload")
-    public ResponseEntity<?> FileUpload(@RequestParam("file") MultipartFile multipartfile, @RequestParam("username") @NotEmpty String userName, FileInfo fileInfo) {
+    public ResponseEntity<?> FileUpload(@RequestParam("file") MultipartFile multipartfile, @RequestParam("username") @NotEmpty String userName) {
         if (Objects.equals(multipartfile.getContentType(), "text/plain")) {
-            return fileServiceImpl.fileUpload(multipartfile, fileInfo, userName);
+            return fileServiceImpl.fileUpload(multipartfile, userName);
         }
         return new ResponseEntity<>(new ErrorResponse(Constants.FAILURE, Constants.ERROR_FILE_FORMAT_NOT_SUPPORTED), HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping("/file/{id}")
     public ResponseEntity<?> getFileById(@PathVariable String id) {
-        return fileServiceImpl.getFileById(id);
+        UUID uuid = UUID.fromString(id);
+        return fileServiceImpl.getFileById(uuid);
     }
 
     @GetMapping("/file/user/{userName}")

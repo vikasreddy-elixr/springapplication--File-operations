@@ -9,7 +9,7 @@ import java.util.List;
 
 
 @Repository
-public interface GlobalRepository extends MongoRepository<FileInfo, String> {
+public interface FileRepository extends MongoRepository<FileInfo, String> {
 
     List<FileInfo> findByUserName(String userName);
 }

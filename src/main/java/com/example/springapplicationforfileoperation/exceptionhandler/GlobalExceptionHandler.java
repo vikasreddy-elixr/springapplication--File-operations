@@ -17,10 +17,6 @@ import java.util.NoSuchElementException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(NullPointerException.class)
-    public ResponseEntity<?> exception(Exception e) {
-        return new ResponseEntity<>(buildErrorResponse(e.getMessage()), HttpStatus.BAD_REQUEST);
-    }
 
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<?> NoSuchElementException(NoSuchElementException exception) {
@@ -28,8 +24,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<?> NotFoundException(NotFoundException exception) {
-        return new ResponseEntity<>(buildErrorResponse(exception.getMessage()), HttpStatus.NOT_FOUND);
+    public ResponseEntity<?> NotFoundException() {
+        return new ResponseEntity<>(buildErrorResponse(Constants.ERROR_NOT_FOUND), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
@@ -56,6 +52,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> MissingServletRequestPartException(MissingServletRequestPartException exception) {
         return new ResponseEntity<>(buildErrorResponse(exception.getMessage()), HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> IllegalArgumentException(IllegalArgumentException exception) {
+        return new ResponseEntity<>(buildErrorResponse(exception.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
 
     private ErrorResponse buildErrorResponse(String message) {
         return ErrorResponse.builder().success(Constants.FAILURE).message(message).build();

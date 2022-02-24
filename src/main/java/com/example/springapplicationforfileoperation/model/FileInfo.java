@@ -2,6 +2,7 @@ package com.example.springapplicationforfileoperation.model;
 
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import javax.persistence.GeneratedValue;
@@ -13,12 +14,13 @@ import java.util.UUID;
 @Document(value = "fileInfo")
 public class FileInfo {
 
-    @MongoId
+    @MongoId(FieldType.STRING)
     @GeneratedValue
-    private UUID id= UUID.randomUUID();
+    private UUID id = UUID.randomUUID();
     @NotEmpty
     private String userName;
     @NotEmpty
     private String fileName;
     private LocalDateTime localDateTime = LocalDateTime.now();
+
 }
