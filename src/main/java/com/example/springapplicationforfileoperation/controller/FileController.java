@@ -1,7 +1,6 @@
 package com.example.springapplicationforfileoperation.controller;
 
 import com.example.springapplicationforfileoperation.contants.Constants;
-import com.example.springapplicationforfileoperation.model.FileInfo;
 import com.example.springapplicationforfileoperation.responses.ErrorResponse;
 import com.example.springapplicationforfileoperation.services.FileServiceImpl;
 import org.springframework.http.HttpStatus;

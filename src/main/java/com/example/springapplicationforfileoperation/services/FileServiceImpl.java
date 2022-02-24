@@ -60,7 +60,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public ResponseEntity<?> getFileById(UUID uuid ) {
+    public ResponseEntity<?> getFileById(UUID uuid) {
         FileInfo getFile = fileRepository.findById(String.valueOf(uuid)).orElseThrow(() -> new NotFoundException(Constants.ERROR_NOT_FOUND));
         String fileName = getFile.getFileName();
         File file = new File(filePath + uuid);
