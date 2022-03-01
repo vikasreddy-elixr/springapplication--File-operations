@@ -2,7 +2,7 @@ package com.example.springapplicationforfileoperation.controller;
 
 import com.example.springapplicationforfileoperation.contants.Constants;
 import com.example.springapplicationforfileoperation.responses.ErrorResponse;
-import com.example.springapplicationforfileoperation.services.FileServiceImpl;
+import com.example.springapplicationforfileoperation.services.FileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -20,30 +20,27 @@ import java.util.UUID;
 @Validated
 @RestController
 public class FileController {
-
-    private final FileServiceImpl fileServiceImpl;
-
-    public FileController(FileServiceImpl fileServiceImpl) {
-        this.fileServiceImpl = fileServiceImpl;
+    FileService fileService;
+    public FileController(FileService fileService) {
+        this.fileService = fileService;
     }
 
     @PostMapping(value = "/upload")
     public ResponseEntity<?> FileUpload(@RequestParam("file") MultipartFile multipartfile, @RequestParam("username") @NotEmpty String userName) {
         if (Objects.equals(multipartfile.getContentType(), "text/plain")) {
-            return fileServiceImpl.fileUpload(multipartfile, userName);
+            return fileService.fileUpload(multipartfile, userName);
         }
         return new ResponseEntity<>(new ErrorResponse(Constants.FAILURE, Constants.ERROR_FILE_FORMAT_NOT_SUPPORTED), HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping("/file/{id}")
     public ResponseEntity<?> getFileById(@PathVariable String id) {
-        UUID uuid = UUID.fromString(id);
-        return fileServiceImpl.getFileById(uuid);
+        return fileService.getFileById(id);
     }
 
     @GetMapping("/file/user/{userName}")
     public ResponseEntity<?> getFilesByUserName(@PathVariable(name = "userName") String userName) {
-        return fileServiceImpl.getFilesByUserName(userName);
+        return fileService.getFilesByUserName(userName);
     }
 
 }

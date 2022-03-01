@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class SuccessResponse {
+public class Response {
 
     private String status;
     private UUID id;
@@ -24,10 +25,4 @@ public class SuccessResponse {
     private String fileName;
     private String content;
     private List<FileInfoDTO> files;
-    private SuccessResponse file;
-
-    public SuccessResponse(String status, SuccessResponse build) {
-        this.status = status;
-        this.file = build;
-    }
 }
