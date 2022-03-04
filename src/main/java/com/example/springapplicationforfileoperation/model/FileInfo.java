@@ -1,8 +1,6 @@
 package com.example.springapplicationforfileoperation.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 import org.springframework.data.mongodb.core.mapping.MongoId;
@@ -25,11 +23,5 @@ public class FileInfo {
     private String userName;
     @NotEmpty
     private String fileName;
-    private LocalDateTime localDateTime = LocalDateTime.now();
-
-    public FileInfo(String id ,String userName, String fileName) {
-        this.userName = userName;
-        this.fileName = fileName;
-        this.id = UUID.fromString(id);
-    }
+    private  LocalDateTime localDateTime = LocalDateTime.now();
 }

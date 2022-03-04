@@ -17,15 +17,16 @@ import javax.validation.constraints.NotEmpty;
 import java.util.Objects;
 import java.util.UUID;
 
-@Validated
+
 @RestController
 public class FileController {
     FileService fileService;
+
     public FileController(FileService fileService) {
         this.fileService = fileService;
     }
 
-    @PostMapping(value = "/upload")
+    @PostMapping("/upload")
     public ResponseEntity<?> FileUpload(@RequestParam("file") MultipartFile multipartfile, @RequestParam("username") @NotEmpty String userName) {
         if (Objects.equals(multipartfile.getContentType(), "text/plain")) {
             return fileService.fileUpload(multipartfile, userName);
@@ -39,7 +40,7 @@ public class FileController {
     }
 
     @GetMapping("/file/user/{userName}")
-    public ResponseEntity<?> getFilesByUserName(@PathVariable(name = "userName") String userName) {
+    public ResponseEntity<?> getFilesByUserName(@PathVariable String userName) {
         return fileService.getFilesByUserName(userName);
     }
 

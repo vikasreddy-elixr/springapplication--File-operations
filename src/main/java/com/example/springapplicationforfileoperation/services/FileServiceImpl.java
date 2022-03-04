@@ -1,11 +1,11 @@
 package com.example.springapplicationforfileoperation.services;
 
 import com.example.springapplicationforfileoperation.contants.Constants;
+import com.example.springapplicationforfileoperation.exceptionhandler.InternalServerErrorException;
 import com.example.springapplicationforfileoperation.exceptionhandler.NotFoundException;
 import com.example.springapplicationforfileoperation.model.FileInfo;
 import com.example.springapplicationforfileoperation.model.FileInfoDTO;
 import com.example.springapplicationforfileoperation.reporsitory.FileRepository;
-import com.example.springapplicationforfileoperation.responses.ErrorResponse;
 import com.example.springapplicationforfileoperation.responses.Response;
 import com.example.springapplicationforfileoperation.responses.ResponseForGetById;
 import org.springframework.core.io.ClassPathResource;
@@ -33,67 +33,71 @@ public class FileServiceImpl implements FileService {
     }
 
     final String filePath;
+
     {
         try {
-            filePath = new ClassPathResource("/static/  ").getFile().getAbsolutePath();
+            filePath = new ClassPathResource("/static/ ").getFile().getAbsolutePath();
         } catch (IOException e) {
             throw new UnexpectedTypeException();
         }
     }
 
     @Override
-    public ResponseEntity<?> fileUpload(MultipartFile multipartFile, String userName) {
+    public ResponseEntity<Response> fileUpload(MultipartFile multipartFile, String userName) {
 
-        FileInfo fileInfo;
+        FileInfo fileInfo = new FileInfo();
+        fileInfo.setFileName(multipartFile.getOriginalFilename());
+        fileInfo.setUserName(userName);
+        fileRepository.save(fileInfo);
         try {
-            fileInfo = new FileInfo();
-            fileInfo.setFileName(multipartFile.getOriginalFilename());
-            fileInfo.setUserName(userName);
-            fileRepository.save(fileInfo);
-            Files.copy(multipartFile.getInputStream(), Paths.get(filePath + fileInfo.getId()), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(multipartFile.getInputStream(), Paths.get(filePath.concat(String.valueOf(fileInfo.getId()))),
+                    StandardCopyOption.REPLACE_EXISTING);
 
         } catch (IOException e) {
-            return new ResponseEntity<>(new ErrorResponse(Constants.FAILURE, Constants.ERROR_UNEXPECTED_TYPE), HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new InternalServerErrorException(Constants.ERROR_UNEXPECTED_TYPE);
         }
         return new ResponseEntity<>(Response.builder().status(Constants.SUCCESS).id(fileInfo.getId()).build(), HttpStatus.OK);
 
     }
 
     @Override
-    public ResponseEntity<?> getFileById(String id) {
+    public ResponseEntity<ResponseForGetById> getFileById(String id) {
         UUID uuid = UUID.fromString(id);
-        FileInfo getFile = fileRepository.findById(String.valueOf(uuid)).orElseThrow(() -> new NotFoundException(Constants.ERROR_NOT_FOUND));
+        FileInfo getFile = fileRepository.findById(UUID.fromString(String.valueOf(uuid))).orElseThrow(() -> new NotFoundException(Constants.ERROR_NOT_FOUND));
         String fileName = getFile.getFileName();
-        File file = new File(filePath + uuid);
+        File file = new File(filePath.concat(String.valueOf(uuid)));
 
         if (file.exists()) {
             try {
-                String data = new String(Files.readAllBytes(Paths.get(filePath + uuid)));
-                return new ResponseEntity<>(new ResponseForGetById(Constants.SUCCESS, Response.builder()
+                String data = new String(Files.readAllBytes(Paths.get(filePath.concat(String.valueOf(uuid)))));
+                return new ResponseEntity<>(ResponseForGetById.builder().status(Constants.SUCCESS).data(Response.builder()
                         .userName(getFile.getUserName()).uploadTime(getFile.getLocalDateTime())
-                        .fileName(fileName).content(data).build()), HttpStatus.OK);
+                        .fileName(fileName).content(data).build()).build(), HttpStatus.OK);
             } catch (IOException e) {
-                return new ResponseEntity<>(new ErrorResponse(Constants.FAILURE, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new InternalServerErrorException(Constants.ERROR_UNEXPECTED_TYPE);
             }
+        } else {
+            throw new NotFoundException(Constants.ERROR_NOT_FOUND);
+
         }
-        return new ResponseEntity<>(new ErrorResponse(Constants.FAILURE, Constants.ERROR_NOT_FOUND), HttpStatus.NOT_FOUND);
     }
 
     @Override
-    public ResponseEntity<?> getFilesByUserName(String userName) {
+    public ResponseEntity<Response> getFilesByUserName(String userName) {
         List<FileInfo> fileInfoList = fileRepository.findByUserName(userName);
         if (fileInfoList.isEmpty()) {
-            return new ResponseEntity<>(new ErrorResponse(Constants.FAILURE, Constants.ERROR_NO_DATA_FOUND), HttpStatus.NOT_FOUND);
+            throw new NotFoundException(Constants.ERROR_NO_DATA_FOUND);
         }
-        return new ResponseEntity<>(Response.builder().status(Constants.SUCCESS).userName(userName).files((fileInfoList.stream().map(this::convertDataIntoDTO).collect(Collectors.toList()))).build(), HttpStatus.OK);
+        return new ResponseEntity<>(Response.builder().status(Constants.SUCCESS).userName(userName)
+                .files((fileInfoList.stream().map(this::convertDataIntoDTO)
+                        .collect(Collectors.toList()))).build(), HttpStatus.OK);
     }
 
     private FileInfoDTO convertDataIntoDTO(FileInfo fileInfo) {
-        FileInfoDTO requiredFileDetailsDto = new FileInfoDTO();
-        requiredFileDetailsDto.setId(fileInfo.getId());
-        requiredFileDetailsDto.setFileName(fileInfo.getFileName());
-        requiredFileDetailsDto.setLocalDateTime(fileInfo.getLocalDateTime());
-        return requiredFileDetailsDto;
+
+        return FileInfoDTO.builder().id(fileInfo.getId())
+                .fileName(fileInfo.getFileName())
+                .localDateTime(fileInfo.getLocalDateTime()).build();
     }
 
 }
