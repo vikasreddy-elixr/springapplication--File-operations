@@ -1,6 +1,7 @@
 package com.example.springapplicationforfileoperation.services;
 
 import com.example.springapplicationforfileoperation.contants.Constants;
+import com.example.springapplicationforfileoperation.exceptionhandler.NotFoundException;
 import com.example.springapplicationforfileoperation.model.FileInfo;
 import com.example.springapplicationforfileoperation.reporsitory.FileRepository;
 import com.example.springapplicationforfileoperation.responses.Response;
@@ -26,8 +27,7 @@ import java.util.UUID;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -48,7 +48,7 @@ class FileServiceImplTest {
 
     @BeforeEach
     public void setUp() {
-        fileInfo.setId(UUID.fromString("d845ace0-c19f-4fad-98ac-1b06c8ba3c3e"));
+        fileInfo.setId(UUID.fromString("5b54dd4f-bbfe-4fc1-bf74-a80d0eb8718d"));
         fileInfo.setUserName("userName");
         fileInfo.setFileName("project.txt");
         fileInfo.setLocalDateTime(LocalDateTime.now());
@@ -74,7 +74,7 @@ class FileServiceImplTest {
 
     @Test
     public void getFileById() {
-        String id = "493388f5-8c68-4984-beac-962dd4ba35f6";
+        String id = "337a1683-cf69-4d12-9f5f-fc679e38d306";
         when(fileRepository.findById(UUID.fromString(id))).thenReturn(Optional.of(fileInfo));
         ResponseEntity<ResponseForGetById> fileFound = fileService.getFileById(id);
         assertNotNull(fileFound);
@@ -82,6 +82,18 @@ class FileServiceImplTest {
         assertEquals(Constants.SUCCESS, Objects.requireNonNull(fileFound.getBody()).getStatus());
         assertEquals(fileInfo.getUserName(), fileFound.getBody().getData().getUserName());
         assertEquals(fileInfo.getFileName(), fileFound.getBody().getData().getFileName());
+    }
+
+    @Test
+    public void errorGet_FileById() {
+
+        String id = "a8580190-a275-44f6-b691-12a7902ae15e";
+        when(fileRepository.findById(UUID.fromString(id))).thenThrow(new NotFoundException(Constants.ERROR_NOT_FOUND));
+        try{
+           fileService.getFileById(id);
+        }catch (NotFoundException exception){
+            assertTrue(true);
+        }
     }
 
     @Test
@@ -94,5 +106,17 @@ class FileServiceImplTest {
         assertEquals(Constants.SUCCESS, Objects.requireNonNull(fIleFound.getBody()).getStatus());
         assertEquals(fileInfo.getUserName(), fIleFound.getBody().getUserName());
         assertEquals(fileInfoList.get(0).getFileName(), fIleFound.getBody().getFiles().get(0).getFileName());
+    }
+
+    @Test
+    public void errorGet_FileByUserName() {
+
+        String userName = "userName";
+        when(fileRepository.findByUserName(userName)).thenThrow(new NotFoundException(Constants.ERROR_NOT_FOUND));
+        try {
+            fileService.getFilesByUserName(userName);
+        }catch(NotFoundException exception){
+            assertTrue(true);
+        }
     }
 }

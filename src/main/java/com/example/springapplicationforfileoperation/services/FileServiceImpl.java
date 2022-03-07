@@ -8,13 +8,12 @@ import com.example.springapplicationforfileoperation.model.FileInfoDTO;
 import com.example.springapplicationforfileoperation.reporsitory.FileRepository;
 import com.example.springapplicationforfileoperation.responses.Response;
 import com.example.springapplicationforfileoperation.responses.ResponseForGetById;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.UnexpectedTypeException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -26,21 +25,14 @@ import java.util.stream.Collectors;
 
 @Service
 public class FileServiceImpl implements FileService {
-    FileRepository fileRepository;
+    final FileRepository fileRepository;
 
     public FileServiceImpl(FileRepository fileRepository) {
         this.fileRepository = fileRepository;
     }
 
-    final String filePath;
-
-    {
-        try {
-            filePath = new ClassPathResource("/static/ ").getFile().getAbsolutePath();
-        } catch (IOException e) {
-            throw new UnexpectedTypeException();
-        }
-    }
+    @Value(Constants.FILE_PATH)
+    String filePath;
 
     @Override
     public ResponseEntity<Response> fileUpload(MultipartFile multipartFile, String userName) {
@@ -88,16 +80,26 @@ public class FileServiceImpl implements FileService {
         if (fileInfoList.isEmpty()) {
             throw new NotFoundException(Constants.ERROR_NO_DATA_FOUND);
         }
+
         return new ResponseEntity<>(Response.builder().status(Constants.SUCCESS).userName(userName)
-                .files((fileInfoList.stream().map(this::convertDataIntoDTO)
+                .files((fileInfoList.stream().map(this::convertDataIntoDTOForFileExists)
                         .collect(Collectors.toList()))).build(), HttpStatus.OK);
     }
 
-    private FileInfoDTO convertDataIntoDTO(FileInfo fileInfo) {
 
-        return FileInfoDTO.builder().id(fileInfo.getId())
-                .fileName(fileInfo.getFileName())
-                .localDateTime(fileInfo.getLocalDateTime()).build();
+    private FileInfoDTO convertDataIntoDTOForFileExists(FileInfo fileInfo) {
+        File file = new File(filePath.concat(String.valueOf(fileInfo.getId())));
+        if (file.exists()) {
+
+            return FileInfoDTO.builder().id(fileInfo.getId())
+                    .fileName(fileInfo.getFileName())
+                    .localDateTime(fileInfo.getLocalDateTime()).fileExistence(Constants.TRUE)
+                    .build();
+        } else {
+            return FileInfoDTO.builder().id(fileInfo.getId())
+                    .fileName(fileInfo.getFileName())
+                    .localDateTime(fileInfo.getLocalDateTime()).fileExistence(Constants.FALSE)
+                    .build();
+        }
     }
-
 }

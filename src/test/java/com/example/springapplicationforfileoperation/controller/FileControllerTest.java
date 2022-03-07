@@ -1,10 +1,12 @@
 package com.example.springapplicationforfileoperation.controller;
 
+import com.example.springapplicationforfileoperation.contants.Constants;
+import com.example.springapplicationforfileoperation.exceptionhandler.NotFoundException;
 import com.example.springapplicationforfileoperation.model.FileInfo;
+import com.example.springapplicationforfileoperation.responses.Response;
 import com.example.springapplicationforfileoperation.services.FileService;
 import net.minidev.json.JSONArray;
 import org.junit.Before;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -23,10 +25,13 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(FileController.class)
 @RunWith(MockitoJUnitRunner.class)
@@ -60,20 +65,19 @@ class FileControllerTest {
         String fileName = "fileName.txt";
         MockMultipartFile sampleFile = new MockMultipartFile("file", fileName, "text/plain",
                 "This is the file content".getBytes());
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.multipart("/upload")
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/upload")
                         .file(sampleFile)
                         .characterEncoding("UTF-8")
                         .contentType(MediaType.TEXT_PLAIN)
                         .param("username", "userName"))
-                .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
-        Assertions.assertEquals(200, result.getResponse().getStatus());
+                .andExpect(status().isOk()).andReturn();
     }
 
     @Test
     public void test_UploadFile_NoFileProvided() throws Exception {
 
         mockMvc.perform(MockMvcRequestBuilders.multipart("/upload"))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -82,25 +86,39 @@ class FileControllerTest {
         Mockito.when(fileService.getFileById(id))
                 .thenReturn(new ResponseEntity<>(HttpStatus.OK));
 
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/file/id")
+         mockMvc.perform(MockMvcRequestBuilders.get("/file/id")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(status().isOk())
                 .andReturn();
-        Assertions.assertEquals(200, result.getResponse().getStatus());
-        assertNotNull(result.getResponse().getContentAsString());
     }
+
+    @Test
+    public void negativeTest_GetFileById() {
+
+        Mockito.when(fileController.getFileById(id))
+                .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        ResponseEntity<?> result = fileController.getFileById(id);
+        assertEquals(HttpStatus.NOT_FOUND,result.getStatusCode());
+    }
+
 
     @Test
     public void test_GetFileByUsername() throws Exception {
         String userName = "userName";
         when(fileService.getFilesByUserName(userName)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         JSONArray json = new JSONArray();
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/file/user/username")
+         mockMvc.perform(MockMvcRequestBuilders.get("/file/user/userName")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json.toString()))
-                .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
-        Assertions.assertEquals(200, result.getResponse().getStatus());
-        assertNotNull(result.getResponse().getContentAsString());
+                .andExpect(status().isOk()).andReturn();
     }
 
+    @Test
+    public void negativeTest_GetFileByUsername()  {
+        String userName = "userName";
+        when(fileController.getFilesByUserName(userName))
+                .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        ResponseEntity<?> result = fileService.getFilesByUserName(userName);
+        assertEquals(HttpStatus.NOT_FOUND,result.getStatusCode());
+    }
 }
