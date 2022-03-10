@@ -38,7 +38,6 @@ class FileServiceImplTest {
 
     @Autowired
     FileServiceImpl fileService;
-
     @MockBean
     FileRepository fileRepository;
 
@@ -48,7 +47,7 @@ class FileServiceImplTest {
 
     @BeforeEach
     public void setUp() {
-        fileInfo.setId(UUID.fromString("5b54dd4f-bbfe-4fc1-bf74-a80d0eb8718d"));
+        fileInfo.setId(UUID.fromString("df38ab86-c3db-434d-a346-2471be5990d"));
         fileInfo.setUserName("userName");
         fileInfo.setFileName("project.txt");
         fileInfo.setLocalDateTime(LocalDateTime.now());
@@ -74,7 +73,7 @@ class FileServiceImplTest {
 
     @Test
     public void getFileById() {
-        String id = "337a1683-cf69-4d12-9f5f-fc679e38d306";
+        String id = "0663b08d-386f-41ce-8c86-b9935a9c9029";
         when(fileRepository.findById(UUID.fromString(id))).thenReturn(Optional.of(fileInfo));
         ResponseEntity<ResponseForGetById> fileFound = fileService.getFileById(id);
         assertNotNull(fileFound);
@@ -86,12 +85,12 @@ class FileServiceImplTest {
 
     @Test
     public void errorGet_FileById() {
-
-        String id = "a8580190-a275-44f6-b691-12a7902ae15e";
+        String id = "e87b8fc3-91b3-4a37-8d41-f7bf7a0b4730";
         when(fileRepository.findById(UUID.fromString(id))).thenThrow(new NotFoundException(Constants.ERROR_NOT_FOUND));
-        try{
-           fileService.getFileById(id);
-        }catch (NotFoundException exception){
+        try {
+            fileService.getFileById(id);
+            fail();
+        } catch (NotFoundException exception) {
             assertTrue(true);
         }
     }
@@ -100,12 +99,12 @@ class FileServiceImplTest {
     public void getFileByUsername() {
         String userName = "userName";
         when(fileRepository.findByUserName(userName)).thenReturn(fileInfoList);
-        ResponseEntity<Response> fIleFound = fileService.getFilesByUserName(userName);
-        assertNotNull(fIleFound);
-        assertEquals(HttpStatus.OK, fIleFound.getStatusCode());
-        assertEquals(Constants.SUCCESS, Objects.requireNonNull(fIleFound.getBody()).getStatus());
-        assertEquals(fileInfo.getUserName(), fIleFound.getBody().getUserName());
-        assertEquals(fileInfoList.get(0).getFileName(), fIleFound.getBody().getFiles().get(0).getFileName());
+        ResponseEntity<Response> fileFound = fileService.getFilesByUserName(userName);
+        assertNotNull(fileFound);
+        assertEquals(HttpStatus.OK, fileFound.getStatusCode());
+        assertEquals(Constants.SUCCESS, Objects.requireNonNull(fileFound.getBody()).getStatus());
+        assertEquals(fileInfo.getUserName(), fileFound.getBody().getUserName());
+        assertEquals(fileInfoList.get(0).getFileName(), fileFound.getBody().getFiles().get(0).getFileName());
     }
 
     @Test
@@ -115,7 +114,8 @@ class FileServiceImplTest {
         when(fileRepository.findByUserName(userName)).thenThrow(new NotFoundException(Constants.ERROR_NOT_FOUND));
         try {
             fileService.getFilesByUserName(userName);
-        }catch(NotFoundException exception){
+            fail();
+        } catch (NotFoundException exception) {
             assertTrue(true);
         }
     }

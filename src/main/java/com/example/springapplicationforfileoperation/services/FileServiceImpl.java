@@ -14,9 +14,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
@@ -27,22 +29,31 @@ import java.util.stream.Collectors;
 public class FileServiceImpl implements FileService {
     final FileRepository fileRepository;
 
+
     public FileServiceImpl(FileRepository fileRepository) {
         this.fileRepository = fileRepository;
     }
 
-    @Value(Constants.FILE_PATH)
-    String filePath;
+    @Value(Constants.LOCAL_STORAGE_FOLDER_PATH)
+    private String filePath;
+
+    @PostConstruct
+    public void init() {
+        try {
+            Files.createDirectories(Path.of(filePath));
+        } catch (Exception ex) {
+            throw new NotFoundException(Constants.ERROR_CREATING_THE_DIRECTORY);
+        }
+    }
 
     @Override
     public ResponseEntity<Response> fileUpload(MultipartFile multipartFile, String userName) {
-
         FileInfo fileInfo = new FileInfo();
         fileInfo.setFileName(multipartFile.getOriginalFilename());
         fileInfo.setUserName(userName);
         fileRepository.save(fileInfo);
         try {
-            Files.copy(multipartFile.getInputStream(), Paths.get(filePath.concat(String.valueOf(fileInfo.getId()))),
+            Files.copy(multipartFile.getInputStream(), Paths.get((filePath.concat(String.valueOf(fileInfo.getId())))),
                     StandardCopyOption.REPLACE_EXISTING);
 
         } catch (IOException e) {
@@ -70,7 +81,6 @@ public class FileServiceImpl implements FileService {
             }
         } else {
             throw new NotFoundException(Constants.ERROR_NOT_FOUND);
-
         }
     }
 
@@ -80,7 +90,6 @@ public class FileServiceImpl implements FileService {
         if (fileInfoList.isEmpty()) {
             throw new NotFoundException(Constants.ERROR_NO_DATA_FOUND);
         }
-
         return new ResponseEntity<>(Response.builder().status(Constants.SUCCESS).userName(userName)
                 .files((fileInfoList.stream().map(this::convertDataIntoDTOForFileExists)
                         .collect(Collectors.toList()))).build(), HttpStatus.OK);
@@ -93,12 +102,12 @@ public class FileServiceImpl implements FileService {
 
             return FileInfoDTO.builder().id(fileInfo.getId())
                     .fileName(fileInfo.getFileName())
-                    .localDateTime(fileInfo.getLocalDateTime()).fileExistence(Constants.TRUE)
+                    .localDateTime(fileInfo.getLocalDateTime()).isFilePresent(Constants.TRUE)
                     .build();
         } else {
             return FileInfoDTO.builder().id(fileInfo.getId())
                     .fileName(fileInfo.getFileName())
-                    .localDateTime(fileInfo.getLocalDateTime()).fileExistence(Constants.FALSE)
+                    .localDateTime(fileInfo.getLocalDateTime()).isFilePresent(Constants.FALSE)
                     .build();
         }
     }

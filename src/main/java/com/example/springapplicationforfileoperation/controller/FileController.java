@@ -41,5 +41,4 @@ public class FileController {
     public ResponseEntity<?> getFilesByUserName(@PathVariable String userName) {
         return fileService.getFilesByUserName(userName);
     }
-
 }

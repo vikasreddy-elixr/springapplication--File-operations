@@ -1,4 +1,4 @@
 FROM openjdk:17
-LABEL maintainer="vikas"
-ADD spring-boot-application-with-docker.jar spring-boot-docker-application.jar
-ENTRYPOINT ["java", "-jar", "spring-boot-docker-application.jar"]
+COPY build/libs/*.jar springapplicationforfileoperation.jar
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","springapplicationforfileoperation.jar"]

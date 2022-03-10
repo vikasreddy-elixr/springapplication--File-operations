@@ -43,6 +43,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(buildErrorResponse(exception.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<?> FileStorageException(FileStorageException exception) {
+        return new ResponseEntity<>(buildErrorResponse(exception.getMessage()), HttpStatus.REQUEST_TIMEOUT);
+    }
+
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<?> MissingServletRequestParameterException(MissingServletRequestParameterException exception) {
         return new ResponseEntity<>(buildErrorResponse(exception.getMessage()), HttpStatus.BAD_REQUEST);

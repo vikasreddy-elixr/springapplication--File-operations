@@ -1,9 +1,6 @@
 package com.example.springapplicationforfileoperation.controller;
 
-import com.example.springapplicationforfileoperation.contants.Constants;
-import com.example.springapplicationforfileoperation.exceptionhandler.NotFoundException;
 import com.example.springapplicationforfileoperation.model.FileInfo;
-import com.example.springapplicationforfileoperation.responses.Response;
 import com.example.springapplicationforfileoperation.services.FileService;
 import net.minidev.json.JSONArray;
 import org.junit.Before;
@@ -20,16 +17,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -44,7 +36,7 @@ class FileControllerTest {
 
     private final FileInfo fileInfo = new FileInfo();
 
-    String id = "497618e4-b378-45a5-b8dc-dfef81c9ac4e";
+    String id = "497618e4-b378-45a5-b8dc-def81c9ac";
 
     @Autowired
     private MockMvc mockMvc;
@@ -83,42 +75,45 @@ class FileControllerTest {
     @Test
     public void test_GetFileById() throws Exception {
 
-        Mockito.when(fileService.getFileById(id))
+        when(fileService.getFileById(id))
                 .thenReturn(new ResponseEntity<>(HttpStatus.OK));
 
-         mockMvc.perform(MockMvcRequestBuilders.get("/file/id")
+        mockMvc.perform(MockMvcRequestBuilders.get("/file/id")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
     }
 
     @Test
-    public void negativeTest_GetFileById() {
-
-        Mockito.when(fileController.getFileById(id))
-                .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        ResponseEntity<?> result = fileController.getFileById(id);
-        assertEquals(HttpStatus.NOT_FOUND,result.getStatusCode());
-    }
-
-
-    @Test
     public void test_GetFileByUsername() throws Exception {
         String userName = "userName";
         when(fileService.getFilesByUserName(userName)).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         JSONArray json = new JSONArray();
-         mockMvc.perform(MockMvcRequestBuilders.get("/file/user/userName")
+        mockMvc.perform(MockMvcRequestBuilders.get("/file/user/userName")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json.toString()))
                 .andExpect(status().isOk()).andReturn();
     }
 
     @Test
-    public void negativeTest_GetFileByUsername()  {
+    public void negativeTest_GetFileByUsername() throws Exception {
         String userName = "userName";
-        when(fileController.getFilesByUserName(userName))
+        when(fileService.getFilesByUserName(userName))
                 .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        ResponseEntity<?> result = fileService.getFilesByUserName(userName);
-        assertEquals(HttpStatus.NOT_FOUND,result.getStatusCode());
+        JSONArray json = new JSONArray();
+        mockMvc.perform(MockMvcRequestBuilders.get("/file/user/userName")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.toString()))
+                .andExpect(status().isNotFound()).andReturn();
+    }
+
+    @Test
+    public void negativeTest_GetFileById() throws Exception {
+        when(fileService.getFileById(Mockito.anyString()))
+                .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        mockMvc.perform(MockMvcRequestBuilders.get("/file/id")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andReturn();
     }
 }
